@@ -39,9 +39,9 @@ if (acquiredLock) {
   updateElectronApp({ onNotifyUser });
 
   // create and configure the app when electron is ready
-  app.on("ready", () => {
+  app.on("ready", async () => {
     // create window and application contexts
-    void createMainWindow();
+    await createMainWindow();
 
     // save first launch state
     if (config.firstLaunch) {
