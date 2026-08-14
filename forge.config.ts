@@ -127,10 +127,10 @@ const config: ForgeConfig = {
     name: STRINGS.name,
     executableName: STRINGS.execName,
     icon: `${ASSET_DIR}/icon`,
-    // extraResource: [
-    //   // include all the asset files
-    //   ...globSync(ASSET_DIR + "/**/*"),
-    // ],
+    extraResource: [
+      // bundle the web frontend to serve locally
+      "web",
+    ],
   },
   rebuildConfig: {},
   makers,

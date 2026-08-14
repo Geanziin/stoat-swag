@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 import {
@@ -15,16 +16,35 @@ import windowIconAsset from "../../assets/desktop/icon.png?asset";
 
 import { config } from "./config";
 import { updateTrayMenu } from "./tray";
+import { startWebServer } from "./webServer";
 
 // global reference to main window
 export let mainWindow: BrowserWindow;
 
-// currently in-use build
-export const BUILD_URL = new URL(
-  app.commandLine.hasSwitch("force-server")
-    ? app.commandLine.getSwitchValue("force-server")
-    : /*MAIN_WINDOW_VITE_DEV_SERVER_URL ??*/ "https://stoat.chat/app",
-);
+/**
+ * Resolve which build the app should load.
+ * 1. `--force-server=<url>` overrides everything (development / testing).
+ * 2. A bundled `web/` directory is served locally if present.
+ * 3. Fall back to the hosted app.
+ */
+async function resolveBuildUrl(): Promise<URL> {
+  if (app.commandLine.hasSwitch("force-server")) {
+    return new URL(app.commandLine.getSwitchValue("force-server"));
+  }
+
+  const webRoot = app.isPackaged
+    ? join(process.resourcesPath, "web")
+    : join(app.getAppPath(), "web");
+
+  if (existsSync(webRoot)) {
+    return new URL(await startWebServer(webRoot));
+  }
+
+  return new URL("https://stoat.chat/app");
+}
+
+// currently in-use build (resolved on app ready)
+export let BUILD_URL: URL;
 
 // internal window state
 let shouldQuit = false;
@@ -37,7 +57,9 @@ const windowIcon = nativeImage.createFromDataURL(windowIconAsset);
 /**
  * Create the main application window
  */
-export function createMainWindow() {
+export async function createMainWindow() {
+  BUILD_URL = await resolveBuildUrl();
+
   // (CLI arg --hidden or config)
   const startHidden =
     app.commandLine.hasSwitch("hidden") || config.startMinimisedToTray;

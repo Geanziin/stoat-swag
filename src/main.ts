@@ -41,7 +41,7 @@ if (acquiredLock) {
   // create and configure the app when electron is ready
   app.on("ready", () => {
     // create window and application contexts
-    createMainWindow();
+    void createMainWindow();
 
     // save first launch state
     if (config.firstLaunch) {
@@ -77,7 +77,7 @@ if (acquiredLock) {
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createMainWindow();
+      void createMainWindow();
     } else {
       mainWindow.show();
       mainWindow.focus();
